@@ -25,7 +25,7 @@ function App() {
   const [target, setTarget] = useState<ICell>();
   const [speed, setSpeed] = useState(50);
   const [calculating, setCalculating] = useState(false);
-  function paint(cell: ICell, wall: boolean) {
+  function paintWall(cell: ICell, wall: boolean) {
     console.log(matrix)
     console.log('x:' + cell.x, 'y:' + cell.y);
     const newMatrix = [...matrix]
@@ -177,13 +177,13 @@ function App() {
                       if (e.button == 0) {
                         setMouseHold(true);
                         setWall(true);
-                        paint(y, true);
+                        paintWall(y, true);
 
                       }
                       else if (e.button == 2) {
                         setMouseHold(true);
                         setWall(false);
-                        paint(y, false);
+                        paintWall(y, false);
                       }
                     }
                   }}
@@ -196,7 +196,7 @@ function App() {
                       return;
 
                     if (mouseHold)
-                      paint(y, wall);
+                      paintWall(y, wall);
                   }}
                 >
                   {y.x},{y.y}
