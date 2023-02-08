@@ -270,8 +270,9 @@ function App() {
           </div>
           <button
             onClick={async () => {
-              if (!origin || target) {
+              if (!origin || !target) {
                 alert("Coloque origem e destino")
+                return;
               }
               setCalculating(true);
               const resultPath: ICell[] = [];
