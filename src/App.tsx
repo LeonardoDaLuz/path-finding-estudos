@@ -71,18 +71,21 @@ function App() {
           path.push(start, neightbor);
           return true;
         }
-      } else if (depthLeft > 0) {
+      } else {
         path.push(start);
         if (await findAround(path, target, neightbor, depthLeft - 1)) {
           return true;
         } else {
           path.pop();
         }
+        if (!neightbor.closed) {
+          closed = false;
+        }
       }
     }
-    if (depthLeft === 0 && closed) {
-      start.closed = true;
-    }
+
+    start.closed = closed;
+
     return false;
   }
 
@@ -219,7 +222,7 @@ function App() {
 
             {matrix.map(x => x.map(y => {
               return (
-                <div key={y.x + y.y} style={{ position: 'absolute', width: cellSize, height: cellSize, left: (y.x * cellSize) + 'px', top: (y.y * cellSize) + 'px', border: '1px solid black', backgroundColor: y === origin ? 'lime' : y === target ? 'blue' : y.elected ? '#00CED1' : y.testing ? '#FFE4C4' : y.tested ? 'grey' : y.wall ? 'black' : 'white' }}
+                <div key={y.x + y.y} style={{ position: 'absolute', width: cellSize, height: cellSize, left: (y.x * cellSize) + 'px', top: (y.y * cellSize) + 'px', border: '1px solid black', backgroundColor: y === origin ? 'lime' : y === target ? 'blue' : y.closed ? 'red' : y.elected ? '#00CED1' : y.testing ? '#FFE4C4' : y.tested ? 'grey' : y.wall ? 'black' : 'white' }}
                   onMouseDown={e => {
                     if (calculating)
                       return;
@@ -267,6 +270,9 @@ function App() {
           </div>
           <button
             onClick={async () => {
+              if (!origin || target) {
+                alert("Coloque origem e destino")
+              }
               setCalculating(true);
               const resultPath: ICell[] = [];
               if (await findPowerUp(resultPath, target!, origin!)) {
