@@ -10,7 +10,8 @@ interface ICell {
   testing: boolean,
   tested: boolean,
   elected: boolean,
-  neightbors: ICell[]
+  neightbors: ICell[],
+  closed: boolean
 }
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
   const [target, setTarget] = useState<ICell>();
   const [speed, setSpeed] = useState(50);
   const [calculating, setCalculating] = useState(false);
+  const [currentTested, setCurrentTested] = useState<{ x: number, y: number }>();
   function paintWall(cell: ICell, wall: boolean) {
     console.log(matrix)
     console.log('x:' + cell.x, 'y:' + cell.y);
@@ -45,8 +47,66 @@ function App() {
     setMatrix(newMatrix);
   }
 
+  async function findAround(path: ICell[], target: ICell, start: ICell, depthLeft: number) {
+
+    if (start.closed) {
+      return false;
+    }
+    if (path.includes(start))
+      return false;
+
+    console.log("findAround: " + start.x + ":" + start.y);
+    setCurrentTested(start);
+
+    let closed = true;
+    for (let neightbor of start.neightbors) {
+      if (depthLeft === 0) {
+        if (neightbor.testing || neightbor.wall) {
+          continue;
+        }
+        closed = false;
+        paintAsTesting(neightbor, true);
+        await new Promise(resolve => { setTimeout(() => { resolve(true) }, speed) });
+        if (neightbor === target) {
+          path.push(start, neightbor);
+          return true;
+        }
+      } else if (depthLeft > 0) {
+        path.push(start);
+        if (await findAround(path, target, neightbor, depthLeft - 1)) {
+          return true;
+        } else {
+          path.pop();
+        }
+      }
+    }
+    if (depthLeft === 0 && closed) {
+      start.closed = true;
+    }
+    return false;
+  }
+
   async function findPowerUp(path: ICell[], target: ICell, start: ICell): Promise<boolean> {
+    paintAsTesting(start);
     console.log("findPowerUp: " + start.x + ":" + start.y);
+
+    if (start === target) {
+      path.push(start);
+      return true;
+    }
+
+    for (let i = 0; i < 30; i++) {
+      if (await findAround(path, target, start, i)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  async function findPowerUpDumb(path: ICell[], target: ICell, start: ICell): Promise<boolean> {
+    console.log("findPowerUp: " + start.x + ":" + start.y);
+
     paintAsTesting(start);
     await new Promise(resolve => { setTimeout(() => { resolve(true) }, speed) });
 
@@ -127,7 +187,8 @@ function App() {
                 neightbors: [],
                 tested: false,
                 testing: false,
-                elected: false
+                elected: false,
+                closed: false
               };
             }
           }
@@ -158,7 +219,7 @@ function App() {
 
             {matrix.map(x => x.map(y => {
               return (
-                <div style={{ position: 'absolute', width: cellSize, height: cellSize, left: (y.x * cellSize) + 'px', top: (y.y * cellSize) + 'px', border: '1px solid black', backgroundColor: y === origin ? 'lime' : y === target ? 'blue' : y.elected ? '#00CED1' : y.testing ? '#FFE4C4' : y.tested ? 'grey' : y.wall ? 'black' : 'white' }}
+                <div key={y.x + y.y} style={{ position: 'absolute', width: cellSize, height: cellSize, left: (y.x * cellSize) + 'px', top: (y.y * cellSize) + 'px', border: '1px solid black', backgroundColor: y === origin ? 'lime' : y === target ? 'blue' : y.elected ? '#00CED1' : y.testing ? '#FFE4C4' : y.tested ? 'grey' : y.wall ? 'black' : 'white' }}
                   onMouseDown={e => {
                     if (calculating)
                       return;
@@ -218,6 +279,7 @@ function App() {
           >
             FIND!
           </button>
+          {currentTested?.x},{currentTested?.y}
         </>}
 
     </div >
