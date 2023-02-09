@@ -55,14 +55,13 @@ function App() {
   }
 
   async function findAround(path: ICell[], target: ICell, start: ICell, depthLeft: number) {
-    // await new Promise(resolve => { setTimeout(() => { resolve(true) }, 1) });
+
     if (start.closed) {
       return false;
     }
 
     console.log("findAround: " + start.x + ":" + start.y);
     setCurrentTested(start);
-
 
     if (depthLeft === 0) {
       let closed = true;
@@ -141,53 +140,6 @@ function App() {
     }
 
     return false;
-  }
-
-  async function findPowerUpDumb(path: ICell[], target: ICell, start: ICell): Promise<boolean> {
-    console.log("findPowerUp: " + start.x + ":" + start.y);
-
-    paintAsTesting(start);
-    await new Promise(resolve => { setTimeout(() => { resolve(true) }, speed) });
-
-    if (start === target) {
-      path.push(start);
-
-      return true;
-    }
-
-    let shortestPath: ICell[] | undefined;
-
-    for (let neightbor of start.neightbors) {
-      if (neightbor.wall)
-        continue;
-
-      if (path.includes(neightbor))
-        continue;
-
-      if (neightbor === start)
-        continue;
-
-      let currentPath: ICell[] = [...path, start];
-      if (await findPowerUp(currentPath, target, neightbor)) {
-
-        if (!shortestPath) {
-          shortestPath = currentPath;
-        } else {
-          if (shortestPath.length > currentPath.length) {
-            shortestPath = currentPath;
-          }
-        }
-      }
-      currentPath.filter(x => !path.includes(x) && x !== start).forEach(x => paintAsTesting(x, false));
-    }
-    if (!shortestPath) {
-      paintAsTesting(start, false)
-      return false;
-    }
-    else {
-      path.push(...shortestPath);
-      return true;
-    }
   }
 
   return (
